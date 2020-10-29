@@ -1,0 +1,462 @@
+if (location.href.includes("https://mastercard-smartit.onbmc.com/smartit/app/#/ticket-console?run=to-be-approved-change")) {
+	document.getElementsByTagName('html')[0].innerText = "";
+	document.getElementsByTagName('html')[0].appendChild(document.createElement('body'));
+	document.body.style.margin = "8px";
+	custom_universal_to_be_approved();
+}
+
+async function custom_universal_to_be_approved() {
+	var index = 0;
+	var exceeds = true;
+	var tasksCompleteData = [];
+	var allChanges = [];
+	var allChangesId = [];
+	var allChangesId2 = [];
+	var internalCount = externalCount = 0;
+
+	document.body.appendChild(document.createElement('title'));
+	document.title = "To be Approved CRQ's";
+
+	var supportGrp = decodeURIComponent(location.href.split('&grp=')[1].split('&')[0]);
+	var supportGrpId = "";
+
+	var supportGrpNames = ["UTS-CHENNAI", "UTS-MIP", "ESG", "DVS_SVC", "WSTS OPERATIONS", "SCRVEND", "UC-TEAM-TIER2"];
+	var supportGrpIds = ["SGP000000001608", "SGP000000001609", "SGP000000000800", "SGP000000000609", "SGP000000003035", "SGP000000001496", "SGP000000001698"];
+
+	for (var i = 0; i < supportGrpNames.length; i++) {
+		if (supportGrpNames[i] == supportGrp) {
+			supportGrpId = supportGrpIds[i];
+		}
+	}
+
+	if (supportGrpId != location.href.split('&id=')[1].split('&')[0]) {
+		alert('Incorrect group id, redirecting you to home page');
+		location.href = "https://mastercard.onbmc.com/arsys/forms/onbmc-s/MC:ELG:WOI:EffortLogConsole/Default/?run=main-universal-dashboard"
+		return 0;
+	}
+
+	var start = location.href.split('&start=')[1].split('&')[0];
+	var end = location.href.split('&end=')[1].split('&')[0];
+	var userEids = [];
+
+	var changeEid = ["e028150", "e075929", "e095408", "e024560", "e093262"];
+
+	if (supportGrp == "UTS-MIP") {
+		userEids = ["e060034", "e076482", "e086140", "e071706", "e095964", "e077606", "e091600", "e095965", "e085028"];
+	} else if (supportGrp == "DVS_SVC") {
+		userEids = ["e048149", "e090865", "e086496", "e071866", "e047187", "e037346", "e096165", "e093840", "e100719", "e104463", "e108015"];
+	} else if (supportGrp == "UTS-CHENNAI") {
+		userEids = ["e047512", "e104556", "e028150", "e067948", "e060893", "e104554", "e100003", "e048930", "e104553", "e063689", "e099761", "e104663", "e099759", "e044196", "e104667", "e069651", "e059035", "e063773", "e099760", "e070393", "e079927", "e104665", "e079926", "e059064", "e068005", "e089137", "e104555", "e066175", "e104666", "e089136", "e068003", "e031151", "e044103", "e068002", "e078530", "e104668", "e024560"];
+	} else if (supportGrp == "ESG") {
+		userEids = ["e100018", "e104557", "e075467", "e101744", "e103848", "e101745", "e105472", "e096425", "e100012", "e041233", "e067895", "e077607", "e103441", "e064091", "e084446"];
+	} else if (supportGrp == "WSTS OPERATIONS") {
+		userEids = ["e085032", "e060994", "e057991", "e095966", "e101751", "e081747", "e092523", "e081521", "e101757", "e089119", "e035438", "e069011"];
+	} else if (supportGrp == "SCRVEND") {
+		userEids = ["e028538", "e034632", "e052033", "e059063", "e060035", "e084814", "e085066", "e089184", "e089185", "e104420", "e105091", "e107544", "e107648", "e107649"];
+	} else if (supportGrp == "UC-TEAM-TIER2") {
+		userEids = ["e063053", "e103966", "e100383", "e100148", "e078168", "e072045", "e079592", "e085140"];
+	}
+
+	var excludeMgrGrp = ["CIS-NAM-CHG-MGR", "CIS-AP-CHG-MGR", "CIS-LAC-CHG-MGR", "CIS-EU-CHG-MGR", "CIS-MEA-CHG-MGR", "ADMS-MIP-CHG-MGR", "PLT-MIP-CHG-MGR"];
+	var approverGrp = "UTS-STL-CHG-APPR";
+
+	var header = document.createElement('div');
+	document.body.appendChild(header);
+
+	//header.style.position = "absolute";
+	//header.style.top = "0px";
+	header.style.border = "2px solid black";
+	header.innerHTML = supportGrp + " TO BE APPROVED CHANGES";
+	header.style.width = "100%";
+	header.style.height = "50px";
+	header.style.textAlign = "center";
+	header.style.fontSize = "35px";
+	header.style.lineHeight = "50px";
+	header.style.fontFamily = "sans-serif";
+
+	var metadata = document.createElement('div');
+	document.body.appendChild(metadata);
+
+	metadata.style.textAlign = "center";
+	metadata.innerText = "Internal : 0 | External : 0";
+	metadata.style.fontSize = "30px";
+	metadata.style.height = "60px";
+	metadata.style.lineHeight = "60px";
+	metadata.id = "metadata";
+
+	var export1 = document.createElement('div');
+	document.body.appendChild(export1);
+	export1.style.position = "absolute";
+	export1.style.top = "70px";
+	export1.style.width = "130px";
+	export1.style.height = "39px";
+	export1.style.color = "#333333";
+	export1.style.border = "2px solid black";
+	export1.innerHTML = "Export";
+	export1.style.textAlign = "center";
+	export1.style.lineHeight = "39px";
+	export1.style.fontSize = "18px";
+	export1.style.cursor = "pointer";
+	export1.addEventListener("click", exportData);
+	
+	var export1 = document.createElement('div');
+	document.body.appendChild(export1);
+
+	export1.style.position = "absolute";
+	export1.style.top = "70px";
+	export1.style.right = "220px";
+	export1.style.width = "100px";
+	export1.style.height = "39px";
+	export1.style.color = "#333333";
+	export1.innerText = "Refresh";
+	export1.style.border = "2px solid black";
+	export1.addEventListener("click", reload);
+	export1.style.textAlign = "center";
+	export1.style.lineHeight = "39px";
+	export1.style.fontSize = "18px";
+	export1.style.cursor = "pointer";
+
+	var timer = document.createElement('div');
+	document.body.appendChild(timer);
+
+	var timerCounter = 30 * 60;
+	var timerCounter2 = timerCounter / 60;
+
+	timer.style.position = "absolute";
+	timer.style.top = "70px";
+	timer.style.right = "0px";
+	timer.style.width = "200px";
+	timer.style.height = "39px";
+	timer.style.color = "#333333";
+	timer.innerText = "Next refresh in " + Math.ceil(timerCounter / 60) + " mins";
+	timer.style.textAlign = "center";
+	timer.style.lineHeight = "39px";
+	timer.style.fontSize = "18px";
+	timer.id = "timer";
+	
+	setInterval(function(){
+		document.getElementById('timer').innerText = "Next refresh in " + timerCounter2 + " mins";
+		timerCounter2--;
+	},1 * 60 * 1000);
+	
+
+	setTimeout(function () {
+		document.location.reload();
+	}, timerCounter * 1000);
+
+	function reload() {
+		location.reload();
+	}
+
+	var date = document.createElement('div');
+	date.style.position = "absolute";
+	date.style.top = "15px";
+	date.style.left = "15px";
+	date.innerText = new Date().toDateString() + "\nVersion: 1.0.3";
+	document.body.appendChild(date);
+	date.style.fontSize = "16px";
+	date.id = "date-now";
+
+	var date = document.createElement('div');
+	date.style.position = "absolute";
+	date.style.top = "15px";
+	date.style.right = "15px";
+	date.innerText = new Date().toTimeString().split('(')[0];
+	document.body.appendChild(date);
+	date.style.fontSize = "16px";
+	date.id = "time-now";
+
+	setInterval(function () {
+		document.getElementById('time-now').innerText = new Date().toTimeString().split('(')[0];
+		document.getElementById('date-now').innerText = new Date().toDateString() + "\nVersion: 1.0.3";
+	}, 1000);
+
+	var table = document.createElement('table');
+	document.body.appendChild(table);
+	table.id = "customTableCrq";
+	table.width = "100%";
+	table.cellSpacing = "0";
+	table.cellPadding = "5";
+	table.border = "1";
+	var innerhtml = `<tr><th>I/E</th><th>Change Number</th><th>Summary</th><th>Scheduled Start Date</th><th>Scheduled End Date</th><th>Change Owner</th><th>SFA Date</th><th>Review By</th><th>Review Status</th><th>Review Date</th><th>Hold By</th><th>Hold Date</th><th>Aging</th></tr>`
+
+	var allChangesData = [];
+	if (supportGrp == "UTS-CHENNAI") {
+		while (exceeds == true) {
+			await fetch("https://mastercard-smartit.onbmc.com/smartit/rest/v2/person/workitems/get", {
+				"credentials": "include",
+				"headers": {
+					"accept": "application/json, text/plain, */*",
+					"accept-language": "en-US,en;q=0.9",
+					"content-type": "application/json;charset=UTF-8",
+					"sec-fetch-mode": "cors",
+					"sec-fetch-site": "same-origin",
+					"x-xsrf-token": "laihtf9pl4lam96sdthe9ddl9hammjvaeas31admaltfkd6r5q7"
+				},
+				"referrer": "https://mastercard-smartit.onbmc.com/smartit/app/",
+				"referrerPolicy": "no-referrer-when-downgrade",
+				"body": `{\"filterCriteria\":{\"assignedSupportGroups\":[{\"name\":\"UTS-CHENNAI\",\"organization\":\"Compute\",\"company\":{\"name\":\"Mastercard\"},\"id\":\"SGP000000001608\"},{\"name\":\"UTS_SD\",\"organization\":\"Compute\",\"company\":{\"name\":\"Mastercard\"},\"id\":\"SGP000000001691\"},{\"name\":\"UTS-STL\",\"organization\":\"Compute\",\"company\":{\"name\":\"Mastercard\"},\"id\":\"SGP000000001610\"},{\"name\":\"UTS-STL-CHG_IMPL\",\"organization\":\"Compute\",\"company\":{\"name\":\"Mastercard\"},\"id\":\"SGP000000001611\"}],\"statusMappings\":[\"open\"],\"ticketTypes\":[\"task\"],\"scheduledStartDates\":[{\"start\":${start},\"end\":${end}}]},\"chunkInfo\":{\"startIndex\":${index},\"chunkSize\":100000},\"sortInfo\":{\"sortFieldName\":\"scheduledStartDate\",\"sortFieldOrder\":\"ASC\"},\"attributeNames\":[\"priority\",\"id\",\"assignee\",\"summary\",\"status\",\"submitDate\",\"parentRequestId\",\"scheduledStartDate\",\"scheduledEndDate\"],\"customAttributeNames\":[]}`,
+				"method": "POST",
+				"mode": "cors"
+			}).then((response) => {
+				if(response.status != 200){
+					alert("Kindly stay in this page only while loading the dashboard or login to Smart IT and try again");
+				}
+				return response.json();
+			}).then((data) => {
+				exceeds = data[0].items[0].exceedsChunkSize;
+				index += 1000;
+				tasksCompleteData.push(data[0]);
+				for (var i = 0; i < data[0].items[0].objects.length; i++) {
+					allChanges.push(data[0].items[0].objects[i].parentId);
+				}
+			});
+		}
+	} else {
+		while (exceeds == true) {
+			await fetch("https://mastercard-smartit.onbmc.com/smartit/rest/v2/person/workitems/get", {
+				"credentials": "include",
+				"headers": {
+					"accept": "application/json, text/plain, */*",
+					"accept-language": "en-US,en;q=0.9",
+					"content-type": "application/json;charset=UTF-8",
+					"sec-fetch-mode": "cors",
+					"sec-fetch-site": "same-origin",
+					"x-xsrf-token": "laihtf9pl4lam96sdthe9ddl9hammjvaeas31admaltfkd6r5q7"
+				},
+				"referrer": "https://mastercard-smartit.onbmc.com/smartit/app/",
+				"referrerPolicy": "no-referrer-when-downgrade",
+				"body": `{\"filterCriteria\":{\"assignedSupportGroups\":[{\"name\":\"${supportGrp}\",\"organization\":\"Compute\",\"company\":{\"name\":\"Mastercard\"},\"id\":\"${supportGrpId}\"}],\"statusMappings\":[\"open\"],\"ticketTypes\":[\"task\"],\"scheduledStartDates\":[{\"start\":${start},\"end\":${end}}]},\"chunkInfo\":{\"startIndex\":${index},\"chunkSize\":100000},\"sortInfo\":{\"sortFieldName\":\"scheduledStartDate\",\"sortFieldOrder\":\"ASC\"},\"attributeNames\":[\"priority\",\"id\",\"assignee\",\"summary\",\"status\",\"submitDate\",\"parentRequestId\",\"scheduledStartDate\",\"scheduledEndDate\"],\"customAttributeNames\":[]}`,
+				"method": "POST",
+				"mode": "cors"
+			}).then((response) => {
+				if (response.status != 200) {
+					alert("Kindly login to smartit and try again")
+				}
+				return response.json();
+			}).then((data) => {
+				exceeds = data[0].items[0].exceedsChunkSize;
+				index += 1000;
+				tasksCompleteData.push(data[0]);
+				for (var i = 0; i < data[0].items[0].objects.length; i++) {
+					allChanges.push(data[0].items[0].objects[i].parentId);
+				}
+			});
+		}
+
+	}
+
+	allChanges = [...new Set(allChanges)];
+
+	exceeds = true;
+
+	while (exceeds == true) {
+		await fetch("https://mastercard-smartit.onbmc.com/smartit/rest/v2/person/workitems/get", {
+			"credentials": "include",
+			"headers": {
+				"accept": "application/json, text/plain, */*",
+				"accept-language": "en-US,en;q=0.9",
+				"content-type": "application/json;charset=UTF-8",
+				"sec-fetch-mode": "cors",
+				"sec-fetch-site": "same-origin",
+				"x-xsrf-token": "157mb0mkgk8kgmqtfnoc2u9bo0nlorqqeqa2o79uab9p7sanfqrf"
+			},
+			"referrer": "https://mastercard-smartit.onbmc.com/smartit/app/",
+			"referrerPolicy": "no-referrer-when-downgrade",
+			"body": `{\"filterCriteria\":{\"ticketTypes\":[\"change\"],\"ticketSpecificStatuses\":[\"Scheduled For Approval\"],\"scheduledStartDates\":[{\"start\":${start},\"end\":${end}}]},\"chunkInfo\":{\"startIndex\":0,\"chunkSize\":100000},\"sortInfo\":{\"sortFieldName\":\"scheduledStartDate\",\"sortFieldOrder\":\"ASC\"},\"attributeNames\":[\"priority\",\"id\",\"customerName\",\"assignee\",\"summary\",\"status\",\"lastModifiedDate\",\"scheduledEndDate\"],\"customAttributeNames\":[]}`,
+			"method": "POST",
+			"mode": "cors"
+		}).then((response) => {
+			if (response.status != 200) {
+				alert("Kindly login to smartit and try again")
+			}
+			return response.json();
+		}).then((data) => {
+			exceeds = data[0].items[0].exceedsChunkSize;
+			index += 1000;
+			tasksCompleteData.push(data[0]);
+			for (var i = 0; i < data[0].items[0].objects.length; i++) {
+				if (allChanges.includes(data[0].items[0].objects[i].displayId)) {
+					allChangesData.push(data[0].items[0].objects[i]);
+				}
+			}
+		});
+	}
+
+	for (var i = 0; i < allChangesData.length; i++) {
+		var num = 20;
+		var logsData = [];
+		time = Date.now();
+		var reviewDate = "";
+		var reviewBy = "";
+		while (num == 20) {
+			await fetch("https://mastercard-smartit.onbmc.com/smartit/rest/timeline/change/" + allChangesData[i].id + "?criteria=lt," + time + "&limit=20", {
+				"credentials": "include",
+				"headers": {
+					"accept": "application/json, text/plain, */*",
+					"accept-language": "en-US,en;q=0.9",
+					"sec-fetch-mode": "cors",
+					"sec-fetch-site": "same-origin",
+					"x-xsrf-token": "lv4cvls69p96urvtdbc5jvnnjr6ugedbmmkf878qh4o7887eshg"
+				},
+				"referrer": "https://mastercard-smartit.onbmc.com/smartit/app/",
+				"referrerPolicy": "no-referrer-when-downgrade",
+				"body": null,
+				"method": "GET",
+				"mode": "cors"
+			}).then((response) => {
+				if (response.status != 200) {
+					alert("Kindly login to smartit and try again")
+				}
+				return response.json();
+			}).then((data) => {
+				num = data[0].numMatch;
+				if (data[0].items.length == 20) {
+					time = data[0].items[19].createDate;
+				}
+				logsData.push(data[0].items);
+			});
+		}
+
+		var approvers = [];
+
+		await fetch("https://mastercard-smartit.onbmc.com/smartit/rest/approval", {
+			"credentials": "include",
+			"headers": {
+				"accept": "application/json, text/plain, */*",
+				"accept-language": "en-US,en;q=0.9",
+				"content-type": "application/json;charset=UTF-8",
+				"sec-fetch-mode": "cors",
+				"sec-fetch-site": "same-origin",
+				"x-xsrf-token": "1g11lkq6k6afvi3rple5btnm14u29adrg8kgpbmoi54tag07sgoh"
+			},
+			"referrer": "https://mastercard-smartit.onbmc.com/smartit/app/",
+			"referrerPolicy": "no-referrer-when-downgrade",
+			"body": `[{\"parentId\":\"${allChangesData[i].id}\",\"parentType\":\"change\",\"type\":\"getListOfApprovers\"}]`,
+			"method": "POST",
+			"mode": "cors"
+		}).then((response) => {
+			return response.json()
+		}).then((data) => {
+			approvers = data;
+		});
+
+		var rfc = "";
+		var sfc = "";
+		var ssd = "";
+		var sed = "";
+		var holdOn = "";
+		var holdBy = "";
+		var status = "";
+		var approvedOn = "";
+		var approvedBy = "";
+		var aging = "";
+		var reviewStatus = "";
+
+		for (var j = logsData.length - 1; j >= 0; j--) {
+			for (var k = logsData[j].length - 1; k >= 0; k--) {
+				if (logsData[j][k].isSystemGenerated == true && logsData[j][k].event != undefined && logsData[j][k].event.entities[0].displayValue == "Request For Change") {
+					rfc = logsData[j][k].createDate;
+				}
+			}
+		}
+
+
+		for (var j = logsData.length - 1; j >= 0; j--) {
+			for (var k = logsData[j].length - 1; k >= 0; k--) {
+				if (logsData[j][k].isSystemGenerated == true && logsData[j][k].createDate > rfc && logsData[j][k].event != undefined && logsData[j][k].event.eventType == "status-change" && logsData[j][k].event.entities[0].displayValue == "Scheduled For Approval") {
+					sfc = logsData[j][k].createDate;
+				}
+			}
+		}
+
+
+		for(var j = 0; j < approvers[0].items[0][0].responseObject.approvalSummaries.length; j++){
+			if(approvers[0].items[0][0].responseObject.approvalSummaries[j].approverGroup != undefined && approvers[0].items[0][0].responseObject.approvalSummaries[j].approverGroup.name == approverGrp && approvers[0].items[0][0].responseObject.approvalSummaries[j].status.value == "Approved" && (approvers[0].items[0][0].responseObject.approvalSummaries[j].approvalTime * 1000) > sfc){
+				approvedBy = approvers[0].items[0][0].responseObject.approvalSummaries[j].approver.fullName;
+				approvedOn = approvers[0].items[0][0].responseObject.approvalSummaries[j].approvalTime * 1000;
+			}
+		}
+
+		for (var j = logsData.length - 1; j >= 0; j--) {
+			for (var k = logsData[j].length - 1; k >= 0; k--) {
+				if (logsData[j][k].createDate > sfc && userEids.includes(logsData[j][k].author.id) && logsData[j][k].isSystemGenerated == false && logsData[j][k].type == "comment" && logsData[j][k].note.message.toLowerCase().includes("uts review comments added")) {
+					if(logsData[j][k].note.message.toLowerCase().includes("uts review comments added - approve")){
+						reviewStatus = "A";
+					}
+					else if(logsData[j][k].note.message.toLowerCase().includes("uts review comments added - hold")){
+						reviewStatus = "H";
+					}
+					reviewBy = logsData[j][k].author.firstName + " " + logsData[j][k].author.lastName;
+					reviewDate = logsData[j][k].createDate;
+				}
+			}
+		}
+
+		for (var j = logsData.length - 1; j >= 0; j--) {
+			for (var k = logsData[j].length - 1; k >= 0; k--) {
+				if (logsData[j][k].isSystemGenerated == true && logsData[j][k].createDate > sfc && logsData[j][k].event != undefined && logsData[j][k].event.eventType == "approval-hold-event") {
+					for (var l = 0; l < changeEid.length; l++) {
+						if (changeEid[l] == logsData[j][k].event.entities[0].entityId) {
+							holdBy = logsData[j][k].event.entities[0].displayValue;
+							holdOn = logsData[j][k].createDate;
+						}
+					}
+				}
+			}
+		}
+
+		ssd = allChangesData[i].scheduledStartDate;
+		sed = allChangesData[i].scheduledEndDate;
+		status = allChangesData[i].status.value;
+		managerGroup = allChangesData[i].changeManagerGroup.name;
+		aging = Date.now() - sfc;
+		aging = Math.floor(aging / (24 * 60 * 60 * 1000));
+		var ie = "";
+		if (rfc != "")
+			rfc = new Date(rfc).toLocaleDateString() + " " + new Date(rfc).toLocaleTimeString();
+		if (sfc != "")
+			sfc = new Date(sfc).toLocaleDateString() + " " + new Date(sfc).toLocaleTimeString();
+		if (ssd != "")
+			ssd = new Date(ssd).toLocaleDateString() + " " + new Date(ssd).toLocaleTimeString();
+		if (sed != "")
+			sed = new Date(sed).toLocaleDateString() + " " + new Date(sed).toLocaleTimeString();
+		if (reviewDate != "")
+			reviewDate = new Date(reviewDate).toLocaleDateString() + " " + new Date(reviewDate).toLocaleTimeString();
+		if (approvedOn != "")
+			approvedOn = new Date(approvedOn).toLocaleDateString() + " " + new Date(approvedOn).toLocaleTimeString();
+		if (holdOn != "")
+			holdOn = new Date(holdOn).toLocaleDateString() + " " + new Date(holdOn).toLocaleTimeString();
+		if (allChangesData[i].summary.substr(0, 3) == "UTS") {
+			ie = "I";
+		} else {
+			ie = "E";
+		}
+
+		if (status == "Scheduled For Approval" && approvedBy == "" && excludeMgrGrp.includes(managerGroup) == false) {
+			if(ie == "I")
+				internalCount++;
+			if(ie == "E")
+				externalCount++;
+			innerhtml += "<tr><td style='text-align:center'>" + ie + "</td><td><a target = '_blank' href = 'https://mastercard-smartit.onbmc.com/smartit/app/#/change/" + allChangesData[i].id + "'>" + allChangesData[i].displayId + "</a></td><td>" + allChangesData[i].summary + "</td><td>" + ssd + "</td><td>" + sed + "</td><td>" + allChangesData[i].assignee.fullName + "</td><td>" + sfc + "</td><td>" + reviewBy + "</td><td style='text-align:center'>" + reviewStatus + "</td><td>" + reviewDate + "</td><td>" + holdBy + "</td><td>" + holdOn + "</td><td style='text-align:center'>" + aging + "</td></tr>";
+		}
+	}
+
+	document.getElementById('customTableCrq').innerHTML = innerhtml;
+	document.getElementById('metadata').innerText = "Internal : " + internalCount + " | External : " + externalCount;
+
+	function exportData() {
+		data = document.getElementById('customTableCrq').innerText;
+		data = data.replace(/\n/g, '"\n"');
+		data = data.replace(/\t/g, '","');
+		data = encodeURIComponent(data);
+		uri = 'data:text/csv;charset=utf-8,' + '"' + data;
+		downloadLink = document.createElement("a");
+		downloadLink.href = uri;
+		downloadLink.download = "data.csv";
+
+		document.body.appendChild(downloadLink);
+		downloadLink.click();
+		document.body.removeChild(downloadLink);
+	}
+}
